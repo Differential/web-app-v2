@@ -21,6 +21,7 @@ import { Box, CardGrid, Heading, Section, Text } from 'ui-kit';
 import { getMediaSource, getSlugFromURL } from 'utils';
 import Styled from './HomeFeed.styles';
 import useLiveStreams from 'hooks/useLiveStreams';
+import * as Sentry from '@sentry/nextjs';
 
 function FullLengthSermon(props = {}) {
   const router = useRouter();
@@ -30,11 +31,8 @@ function FullLengthSermon(props = {}) {
   const { liveStreams } = useLiveStreams();
   const liveContent = liveStreams?.[0]?.contentItem;
   const livestreamUrl = liveStreams?.[0]?.webViewUrl;
-  // TODO: we have a bug with this we need to fix
-  // https://linear.app/differential/issue/APO-212/long-hollow-watch-live-now-overlay-is-still-showing-on-the-home-page
-  //const LIVE = !!liveStreams?.[0]?.isLive;
-  const LIVE = false;
-
+  const LIVE = !!liveStreams?.[0]?.isLive;
+  Sentry.captureMessage(`LIVE: ${JSON.stringify(LIVE)}`);
   const clips =
     props.sermon?.childContentItemsConnection?.edges
       ?.map(({ node }) => node)

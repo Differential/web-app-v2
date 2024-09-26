@@ -1,5 +1,6 @@
 import { gql, useQuery } from '@apollo/client';
 import { formatDistanceToNow } from 'date-fns';
+import * as Sentry from '@sentry/nextjs';
 
 export const GET_LIVE_STREAMS = gql`
   query getLiveStreams {
@@ -39,17 +40,18 @@ function useLiveStreams(options = {}) {
   const query = useQuery(GET_LIVE_STREAMS, {
     ...options,
     cachePolicy: 'network-only',
+    errorPolicy: 'ignore',
   });
+  Sentry.captureMessage(`useLiveStreams: ${JSON.stringify(query?.data)}`);
   const firstStream = query?.data?.liveStreams?.[0];
-  let prettyCountdown = '';
-  // TODO turn this back on when livestream cache is working properly
-  //if (firstStream?.isLive) prettyCountdown = '• LIVE NOW';
-  //else if (!firstStream?.eventStartTime) prettyCountdown = '';
-  //else
-  //prettyCountdown = `• LIVE ${formatDistanceToNow(
-  //new Date(firstStream?.eventStartTime),
-  //{ addSuffix: true }
-  //).toUpperCase()}`;
+  let prettyCountdown;
+  if (firstStream?.isLive) prettyCountdown = '• LIVE NOW';
+  else if (!firstStream?.eventStartTime) prettyCountdown = '';
+  else
+    prettyCountdown = `• LIVE ${formatDistanceToNow(
+      new Date(firstStream?.eventStartTime),
+      { addSuffix: true }
+    ).toUpperCase()}`;
 
   return {
     prettyCountdown,
